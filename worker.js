@@ -64,7 +64,7 @@ export default {
 };
 
 async function gemini(env, msgs, img) {
-  const model = env.MODEL || "gemini-2.5-flash";
+  const model = env.MODEL || "gemini-3.8-flash";
   const contents = msgs.map((m, i) => {
     const parts = [{ text: m.text }];
     if (img && i === msgs.length - 1 && m.role === "user")
