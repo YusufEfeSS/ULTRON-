@@ -20,7 +20,10 @@ export default {
       new Response(JSON.stringify(o), { status: s, headers: { ...cors, "Content-Type": "application/json" } });
 
     if (req.method === "OPTIONS") return new Response(null, { headers: cors });
-    if (req.method !== "POST") return new Response("ULTRON hazır.", { headers: cors });
+    if (req.method !== "POST") {
+      // Arayüz dosyaları (index.html) aynı adresten sunulur
+      return env.ASSETS ? env.ASSETS.fetch(req) : new Response("ULTRON hazır.", { headers: cors });
+    }
     if (env.ULTRON_TOKEN && req.headers.get("X-Ultron-Token") !== env.ULTRON_TOKEN)
       return json({ error: "Erişim şifresi hatalı" }, 401);
     if (!env.ANTHROPIC_API_KEY) return json({ error: "Worker'da ANTHROPIC_API_KEY tanımlı değil" }, 500);
