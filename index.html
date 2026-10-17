@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#000000">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>ULTRON</title>
+<style>
+:root{--red:#ff2d2d;--red2:#ff6a5a;--dim:#8a8a90;--line:#26262b;--bg:#000}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:#000;color:#eee;font-family:system-ui,-apple-system,Roboto,"Segoe UI",sans-serif;overflow:hidden;overscroll-behavior:none}
+#app{height:100dvh;display:flex;flex-direction:column;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);position:relative;
+ background:radial-gradient(ellipse at 50% 38%,#1a0505 0%,#050000 45%,#000 75%)}
+header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 4px}
+.brand{background:none;border:0;color:#fff;font-weight:800;letter-spacing:.42em;font-size:15px;display:flex;align-items:center;gap:8px;padding:6px 0}
+.brand small{letter-spacing:0;color:var(--dim);font-size:12px}
+.hicons{display:flex;align-items:center;gap:6px}
+.ib{background:none;border:0;color:#e8e8ea;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;cursor:pointer}
+.ib:active{background:#ffffff14}
+.ib svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#star{color:#ffc53d}
+#dot{width:9px;height:9px;border-radius:50%;background:#ff9f1a;box-shadow:0 0 8px #ff9f1a;margin:0 8px}
+#dot.on{background:#35e07a;box-shadow:0 0 8px #35e07a}
+#orbwrap{position:relative;flex:0 0 auto;height:min(46dvh,420px);margin-top:4px}
+#orb{width:100%;height:100%;display:block;touch-action:manipulation}
+#status{position:absolute;left:0;right:0;bottom:2px;text-align:center;font:600 11px ui-monospace,Menlo,Consolas,monospace;letter-spacing:.35em;color:#ff7468;text-shadow:0 0 10px #ff2d2d88}
+#live{min-height:20px;text-align:center;color:#ffb3aa;font-size:14px;padding:6px 24px 0;font-style:italic}
+#feed{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:10px;padding:8px 26px 14px;text-align:center;
+ -webkit-mask-image:linear-gradient(transparent,#000 35%);mask-image:linear-gradient(transparent,#000 35%)}
+.msg{max-width:92%;font-size:16px;line-height:1.38;font-weight:500;word-wrap:break-word}
+.msg.user{color:#9b9ba3;font-size:14px}
+.msg.ai{color:#f4f4f6}
+.msg a{color:#ff8a7a;font-weight:700;display:inline-block;margin-top:6px;padding:6px 14px;border:1px solid #ff5a4a66;border-radius:20px;text-decoration:none}
+.msg.err{color:#ffb454}
+.think span{animation:bl 1.2s infinite;opacity:.2}.think span:nth-child(2){animation-delay:.2s}.think span:nth-child(3){animation-delay:.4s}
+@keyframes bl{50%{opacity:1}}
+footer{padding:6px 14px 14px}
+#prev{display:none;align-items:center;gap:10px;margin:0 6px 8px;color:var(--dim);font-size:12px}
+#prev img{height:54px;width:54px;object-fit:cover;border-radius:10px;border:1px solid #ff3a3a66}
+#prev button{background:#1b1b1f;border:0;color:#ddd;border-radius:50%;width:26px;height:26px}
+.bar{display:flex;align-items:center;gap:8px;background:#0b0b0d;border:1px solid var(--line);border-radius:30px;padding:6px 6px 6px 14px}
+.bar .ib{width:38px;height:38px;flex:0 0 auto}
+#txt{flex:1;min-width:0;background:none;border:0;outline:0;color:#fff;font:600 13px ui-monospace,Menlo,Consolas,monospace;letter-spacing:.08em;padding:8px 2px}
+#txt::placeholder{color:#6d6d74}
+#send{display:none;color:#ff6a5a}
+#cam{border:1px solid #2c2c32;border-radius:50%}
+#mic{width:50px;height:50px;border-radius:50%;border:0;background:#ff5468;color:#fff;display:grid;place-items:center;flex:0 0 auto;box-shadow:0 0 22px #ff3a5088;cursor:pointer}
+#mic svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#mic.on{animation:pulse 1.4s infinite;background:#ff2d2d}
+@keyframes pulse{0%{box-shadow:0 0 0 0 #ff2d2daa}100%{box-shadow:0 0 0 18px #ff2d2d00}}
+.sheet{position:absolute;inset:0;background:#000000d9;backdrop-filter:blur(8px);display:none;flex-direction:column;justify-content:flex-end;z-index:20}
+.sheet.open{display:flex}
+.panel{background:#0c0c0e;border-top:1px solid #2a1212;border-radius:22px 22px 0 0;max-height:86dvh;overflow:auto;padding:18px 20px calc(22px + env(safe-area-inset-bottom))}
+.panel h2{margin:0 0 14px;font-size:13px;letter-spacing:.3em;color:#ff7468;font-weight:700;display:flex;justify-content:space-between;align-items:center}
+.panel h2 button{background:none;border:0;color:#aaa;font-size:22px}
+label{display:block;font-size:12px;color:#9a9aa2;margin:14px 0 6px}
+input[type=text],input[type=password],input[type=url],select{width:100%;background:#050506;border:1px solid #2b2b31;color:#fff;border-radius:12px;padding:12px;font-size:14px}
+input[type=range]{width:100%;accent-color:#ff3a3a}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;font-size:14px}
+.row input{accent-color:#ff3a3a;width:20px;height:20px}
+.btn{background:#1a0a0a;color:#ff8a7a;border:1px solid #ff3a3a55;border-radius:12px;padding:11px 16px;font-weight:700;margin-top:14px;font-size:14px}
+.btn.full{width:100%}
+.note{font-size:12px;color:#7f7f87;line-height:1.5;margin-top:8px}
+.hm{padding:10px 0;border-bottom:1px solid #1a1a1e;font-size:14px;line-height:1.4}
+.hm b{display:block;font-size:11px;letter-spacing:.2em;color:#ff7468;margin-bottom:3px}
+.hm.user b{color:#8a8a92}
+.hm time{float:right;color:#5d5d64;font-size:11px}
+.cap{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #1a1a1e;font-size:14px;gap:12px}
+.cap i{font-style:normal;font-size:12px;text-align:right}
+.ok{color:#35e07a}.no{color:#ffb454}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <button class="brand" id="brand">ULTRON <small>⌄</small></button>
+    <div class="hicons">
+      <button class="ib" id="star" title="Sohbet geçmişi"><svg viewBox="0 0 24 24" style="fill:currentColor;stroke:none"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3 6.1 20.6l1.3-6.6L2.5 9.4l6.6-.8z"/></svg></button>
+      <button class="ib" id="info" title="Durum"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.1"/></svg></button>
+      <span id="dot" title="Yapay zekâ ucu"></span>
+      <button class="ib" id="gear" title="Ayarlar"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg></button>
+    </div>
+  </header>
+
+  <div id="orbwrap"><canvas id="orb"></canvas><div id="status">HAZIR</div></div>
+  <div id="live"></div>
+  <div id="feed"></div>
+
+  <footer>
+    <div id="prev"><img id="prevImg" alt=""><span>Fotoğraf eklendi</span><button id="prevX">✕</button></div>
+    <div class="bar">
+      <button class="ib" id="gal" title="Galeri"><svg viewBox="0 0 24 24" style="color:#ff6a7a"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="9" cy="11" r="1.7"/><path d="M4 18l5-4.5 3.5 3L16 13l4 4"/></svg></button>
+      <input id="txt" type="text" placeholder="YAZ…" autocomplete="off" enterkeyhint="send">
+      <button class="ib" id="send" title="Gönder"><svg viewBox="0 0 24 24"><path d="M4 12l16-8-6 17-3-7z"/></svg></button>
+      <button class="ib" id="cam" title="Kamera"><svg viewBox="0 0 24 24"><path d="M4 8h3l1.5-2h7L17 8h3v11H4z"/><circle cx="12" cy="13.5" r="3.3"/></svg></button>
+      <button id="mic" title="Mikrofon"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3" style="fill:currentColor"/><path d="M5.5 11a6.5 6.5 0 0013 0M12 17.5V21"/></svg></button>
+    </div>
+    <input type="file" id="fCam" accept="image/*" capture="environment" hidden>
+    <input type="file" id="fGal" accept="image/*" hidden>
+  </footer>
+
+  <!-- Geçmiş -->
+  <div class="sheet" id="shHist"><div class="panel">
+    <h2>SOHBET GEÇMİŞİ <button data-close>✕</button></h2>
+    <div id="histList"></div>
+    <button class="btn full" id="clearHist">Geçmişi temizle</button>
+  </div></div>
+
+  <!-- Bilgi -->
+  <div class="sheet" id="shInfo"><div class="panel">
+    <h2>SİSTEM DURUMU <button data-close>✕</button></h2>
+    <div id="caps"></div>
+    <p class="note">Burada yalnızca gerçekten ölçülebilen durumlar gösterilir. Yapay zekâ satırı, adresin kayıtlı olduğunu belirtir; bağlantıyı test etmek için bir mesaj gönder.</p>
+  </div></div>
+
+  <!-- Ayarlar -->
+  <div class="sheet" id="shSet"><div class="panel">
+    <h2>AYARLAR <button data-close>✕</button></h2>
+    <label>Yapay zekâ uç noktası (kendi Worker adresin)</label>
+    <input type="url" id="sEnd" placeholder="https://ultron.kullanici.workers.dev">
+    <label>Erişim şifresi (Worker'daki ULTRON_TOKEN)</label>
+    <input type="password" id="sTok" placeholder="isteğe bağlı ama önerilir" autocomplete="off">
+    <p class="note">API anahtarını buraya YAZMA. Anahtar yalnızca Worker'da gizli tutulur.</p>
+    <label>Ses</label>
+    <select id="sVoice"></select>
+    <label>Perde: <span id="vP"></span></label>
+    <input type="range" id="sPitch" min="0.3" max="1.5" step="0.05">
+    <label>Hız: <span id="vR"></span></label>
+    <input type="range" id="sRate" min="0.6" max="1.4" step="0.05">
+    <button class="btn" id="testVoice">Sesi dene</button>
+    <div class="row"><span>Cevapları sesli oku</span><input type="checkbox" id="sSpeak"></div>
+    <div class="row"><span>Sürekli dinle (cevaptan sonra tekrar aç)</span><input type="checkbox" id="sCont"></div>
+    <div class="row"><span>Mikrofon dalga analizi</span><input type="checkbox" id="sAna"></div>
+    <p class="note">Konuşma tanıma bazı telefonlarda dalga analiziyle çakışabilir; mikrofon çalışmazsa bunu kapat.</p>
+  </div></div>
+</div>
+
+<script>
+"use strict";
+const $=s=>document.querySelector(s);
+const load=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k));return v??d}catch{return d}};
+const save=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}};
+
+let cfg=Object.assign({endpoint:"",token:"",voice:"",pitch:0.7,rate:0.95,autoSpeak:true,continuous:true,analyse:true},load("ultron.cfg",{}));
+let hist=load("ultron.hist",[]);
+let attached=null, busy=false, micOn=false, speaking=false, mode="idle", thinkingUI=false;
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+const TTS=window.speechSynthesis;
+
+/* ---------- Durum ---------- */
+const LABELS={idle:"HAZIR",listening:"DİNLİYOR",thinking:"DÜŞÜNÜYOR",speaking:"KONUŞUYOR"};
+function setMode(m){mode=m;$("#status").textContent="ULTRON · "+LABELS[m];$("#mic").classList.toggle("on",micOn)}
+function refreshDot(){$("#dot").classList.toggle("on",!!cfg.endpoint)}
+setMode("idle");refreshDot();
+
+/* ---------- Sohbet ekranı ---------- */
+function mk(el,cls,txt){const e=document.createElement(el);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
+function render(){
+  const f=$("#feed");f.innerHTML="";
+  const last=hist.slice(-4);
+  last.forEach((m,i)=>{
+    const d=mk("div","msg "+(m.err?"err ai":m.role==="user"?"user":"ai"),m.text);
+    d.style.opacity=(0.35+0.65*(i+1)/last.length).toFixed(2);
+    if(m.link){d.appendChild(mk("br"));const a=mk("a","",m.link.label);a.href=m.link.url;a.target="_blank";a.rel="noopener";d.appendChild(a)}
+    f.appendChild(d);
+  });
+  if(thinkingUI){const d=mk("div","msg ai think");d.innerHTML="<span>●</span> <span>●</span> <span>●</span>";f.appendChild(d)}
+}
+function addMsg(role,text,extra){
+  hist.push(Object.assign({role,text,t:Date.now()},extra||{}));
+  if(hist.length>200)hist=hist.slice(-200);
+  save("ultron.hist",hist);render();
+}
+
+/* ---------- Ses çıkışı ---------- */
+let pulse=0;
+function pickVoice(){
+  const vs=TTS?TTS.getVoices().filter(v=>/^tr/i.test(v.lang)):[];
+  return vs.find(v=>v.name===cfg.voice)||vs[0]||null;
+}
+function speak(text){
+  if(!TTS||!cfg.autoSpeak){afterSpeak();return}
+  TTS.cancel();
+  const clean=text.replace(/[*_`#>]/g," ").replace(/https?:\/\/\S+/g," bağlantı ").replace(/\s+/g," ").trim();
+  const parts=clean.match(/[^.!?…\n]+[.!?…]*/g)||[clean];
+  const chunks=[];let cur="";
+  parts.forEach(p=>{if((cur+p).length>170&&cur){chunks.push(cur);cur=p}else cur+=p});
+  if(cur.trim())chunks.push(cur);
+  if(!chunks.length){afterSpeak();return}
+  stopRec();speaking=true;setMode("speaking");
+  const v=pickVoice();
+  chunks.forEach((c,i)=>{
+    const u=new SpeechSynthesisUtterance(c.trim());
+    u.lang="tr-TR";if(v)u.voice=v;u.pitch=cfg.pitch;u.rate=cfg.rate;
+    u.onboundary=()=>{pulse=1};
+    u.onerror=()=>{if(i===chunks.length-1)afterSpeak()};
+    if(i===chunks.length-1)u.onend=afterSpeak;
+    TTS.speak(u);
+  });
+}
+function afterSpeak(){
+  speaking=false;busy=false;pulse=0;
+  if(micOn&&cfg.continuous){setMode("listening");setTimeout(startRec,300)}
+  else{micOn=false;releaseMic();setMode("idle")}
+}
+function stopSpeak(){if(TTS)TTS.cancel();if(speaking)afterSpeak()}
+
+/* ---------- Mikrofon + analiz ---------- */
+let rec=null,recActive=false,stream=null,ac=null,analyser=null,abuf=null,lastVoiceT=0;
+async function ensureAnalyser(){
+  if(!cfg.analyse||analyser)return;
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}});
+    ac=new (window.AudioContext||window.webkitAudioContext)();
+    const src=ac.createMediaStreamSource(stream);
+    analyser=ac.createAnalyser();analyser.fftSize=512;src.connect(analyser);
+    abuf=new Uint8Array(analyser.fftSize);
+  }catch(e){analyser=null}
+}
+function releaseMic(){
+  stopRec();
+  try{stream&&stream.getTracks().forEach(t=>t.stop())}catch{}
+  try{ac&&ac.close()}catch{}
+  stream=null;ac=null;analyser=null;
+  try{wl&&wl.release()}catch{};wl=null;
+}
+function micLevel(){
+  if(analyser){
+    analyser.getByteTimeDomainData(abuf);let s=0;
+    for(let i=0;i<abuf.length;i++){const x=(abuf[i]-128)/128;s+=x*x}
+    return Math.min(1,Math.sqrt(s/abuf.length)*5);
+  }
+  return (performance.now()-lastVoiceT<700)?0.3+Math.random()*0.3:0;
+}
+function startRec(){
+  if(!micOn||busy||speaking||recActive)return;
+  if(!SR){return}
+  rec=new SR();rec.lang="tr-TR";rec.interimResults=true;rec.continuous=false;rec.maxAlternatives=1;
+  let finalText="";
+  rec.onstart=()=>{recActive=true;setMode("listening")};
+  rec.onspeechstart=()=>{lastVoiceT=performance.now()};
+  rec.onresult=e=>{
+    lastVoiceT=performance.now();let interim="";
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const r=e.results[i];
+      if(r.isFinal)finalText+=r[0].transcript;else interim+=r[0].transcript;
+    }
+    $("#live").textContent=finalText||interim;
+  };
+  rec.onerror=e=>{
+    recActive=false;
+    if(e.error==="not-allowed"||e.error==="service-not-allowed"){
+      micOn=false;releaseMic();setMode("idle");
+      notice("Mikrofon izni verilmedi. Chrome adres çubuğundaki kilit simgesinden izin ver.");
+    }else if(e.error==="audio-capture"){
+      micOn=false;releaseMic();setMode("idle");
+      notice("Mikrofon açılamadı. Ayarlar'dan 'Mikrofon dalga analizi'ni kapatıp tekrar dene.");
+    }
+  };
+  rec.onend=()=>{
+    recActive=false;
+    const t=finalText.trim();$("#live").textContent="";
+    if(t){if(!cfg.continuous){micOn=false}send(t);return}
+    if(micOn&&!busy&&!speaking)setTimeout(startRec,250);
+  };
+  try{rec.start()}catch{recActive=false}
+}
+function stopRec(){try{rec&&rec.abort()}catch{};recActive=false}
+let wl=null;
+async function toggleMic(){
+  if(micOn){micOn=false;releaseMic();$("#live").textContent="";setMode("idle");return}
+  if(!SR){notice("Bu tarayıcı konuşma tanımayı desteklemiyor. Android Chrome kullan.");return}
+  if(speaking)stopSpeak();
+  micOn=true;setMode("listening");
+  try{wl=await navigator.wakeLock.request("screen")}catch{}
+  await ensureAnalyser();startRec();
+}
+function notice(t){hist.push({role:"assistant",text:t,t:Date.now(),err:true});render()}
+
+/* ---------- Yerel komutlar (yapay zekâ gerekmez) ---------- */
+function localCmd(raw){
+  const t=raw.toLocaleLowerCase("tr").replace(/[.,!?]/g,"").trim();
+  const now=new Date();
+  if(/saat kaç|saati söyle|şu an saat/.test(t))return {text:"Saat "+now.toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"})+"."};
+  if(/tarih|bugün günlerden|hangi gün|günlerden ne/.test(t)&&!/yapay/.test(t))return {text:"Bugün "+now.toLocaleDateString("tr-TR",{day:"numeric",month:"long",year:"numeric",weekday:"long"})+"."};
+  if(/pil|şarj/.test(t)&&navigator.getBattery)return navigator.getBattery().then(b=>({text:"Pil yüzde "+Math.round(b.level*100)+", "+(b.charging?"şarjda.":"şarjda değil.")})).catch(()=>null);
+  if(/spotify/.test(t)){
+    const q=t.replace(/spotify('?[a-zçğıöşü]*)?|çal|bir|şarkı(yı|sı)?|aç/g,"").trim();
+    return {text:"Spotify arama sayfasını hazırladım. Otomatik çalma yetkim yok; butona dokun.",link:{label:"Spotify'da aç",url:"https://open.spotify.com/search/"+encodeURIComponent(q||"")}};
+  }
+  if(/youtube/.test(t)){
+    const q=t.replace(/youtube('?[a-zçğıöşü]*)?|aç|ara|izle|bir/g,"").trim();
+    return {text:"YouTube bağlantısı hazır.",link:{label:"YouTube'da aç",url:"https://www.youtube.com/results?search_query="+encodeURIComponent(q)}};
+  }
+  return null;
+}
+
+/* ---------- Gönderme + yapay zekâ ---------- */
+async function send(text){
+  text=(text||"").trim();
+  if(!text&&!attached)return;
+  if(busy)return;
+  if(!text)text="Bu fotoğrafı analiz et.";
+  const img=attached;
+  busy=true;stopRec();$("#txt").value="";updSend();
+  addMsg("user",text+(img?" 📷":""));
+  clearAttach();
+  setMode("thinking");thinkingUI=true;render();
+  let reply,extra;
+  try{
+    const lc=!img?await localCmd(text):null;
+    if(lc){reply=lc.text;extra=lc.link?{link:lc.link}:null}
+    else if(!cfg.endpoint){
+      reply="Yapay zekâ bağlantısı henüz kurulmadı. Ayarlar'dan Worker adresini gir. Şimdilik saat, tarih, pil ve Spotify/YouTube komutlarını yerel olarak yapabilirim.";
+    }else{
+      const msgs=hist.slice(-13).map(m=>({role:m.role,content:m.text.replace(/ 📷$/,"")}));
+      const res=await fetch(cfg.endpoint,{method:"POST",headers:{"Content-Type":"application/json","X-Ultron-Token":cfg.token||""},
+        body:JSON.stringify({messages:msgs,image:img})});
+      const data=await res.json().catch(()=>({}));
+      if(!res.ok)throw new Error(data.error||("Sunucu hatası "+res.status));
+      reply=(data.reply||"").trim()||"Boş yanıt aldım.";
+    }
+  }catch(e){
+    thinkingUI=false;busy=false;setMode("idle");
+    notice("Bağlantı hatası: "+(e.message||e)+". Adresi ve şifreyi kontrol et.");
+    afterError();return;
+  }
+  thinkingUI=false;
+  addMsg("assistant",reply,extra);
+  speak(reply);
+}
+function afterError(){if(micOn&&cfg.continuous){setMode("listening");setTimeout(startRec,300)}}
+
+/* ---------- Fotoğraf ---------- */
+function pickImage(file){
+  if(!file)return;
+  const r=new FileReader();
+  r.onload=()=>{
+    const im=new Image();
+    im.onload=()=>{
+      const M=1280,k=Math.min(1,M/Math.max(im.width,im.height));
+      const c=document.createElement("canvas");c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
+      c.getContext("2d").drawImage(im,0,0,c.width,c.height);
+      attached=c.toDataURL("image/jpeg",0.8);
+      $("#prevImg").src=attached;$("#prev").style.display="flex";updSend();
+    };
+    im.src=r.result;
+  };
+  r.readAsDataURL(file);
+}
+function clearAttach(){attached=null;$("#prev").style.display="none";$("#fCam").value="";$("#fGal").value="";updSend()}
+function updSend(){$("#send").style.display=($("#txt").value.trim()||attached)?"grid":"none"}
+
+/* ---------- Orb animasyonu ---------- */
+const cv=$("#orb"),ctx=cv.getContext("2d");
+let W=0,H=0,lvl=0,t0=performance.now();
+function fit(){
+  const d=Math.min(devicePixelRatio||1,2);W=cv.clientWidth;H=cv.clientHeight;
+  cv.width=W*d;cv.height=H*d;ctx.setTransform(d,0,0,d,0,0);
+}
+addEventListener("resize",fit);
+function frame(now){
+  const t=(now-t0)/1000;
+  let target=0;
+  if(mode==="listening")target=micLevel();
+  else if(mode==="speaking"){pulse*=0.9;target=0.18+0.55*pulse+0.12*Math.abs(Math.sin(t*7.3))}
+  else if(mode==="thinking")target=0.22+0.1*Math.sin(t*5);
+  lvl+=(target-lvl)*0.18;
+  const breath=0.5+0.5*Math.sin(t*1.3);
+  ctx.clearRect(0,0,W,H);
+  const cx=W/2,cy=H/2,R=Math.min(W,H)*0.46;
+  let g=ctx.createRadialGradient(cx,cy,0,cx,cy,R*1.25);
+  g.addColorStop(0,`rgba(255,40,30,${0.16+lvl*0.25})`);g.addColorStop(1,"rgba(255,0,0,0)");
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  const think=mode==="thinking"?1:0;
+  for(let k=0;k<5;k++){
+    const base=R*(0.36+0.085*k);ctx.beginPath();
+    const N=170;
+    for(let i=0;i<=N;i++){
+      const a=i/N*Math.PI*2;
+      const n=Math.sin(a*(3+k)+t*(0.8+0.3*k)+k*1.7)*0.6+Math.sin(a*(5+k*2)-t*(1.1+0.2*k))*0.4;
+      const r=base+n*(2+lvl*16+think*4+breath*1.5);
+      const x=cx+Math.cos(a)*r,y=cy+Math.sin(a)*r;
+      i?ctx.lineTo(x,y):ctx.moveTo(x,y);
+    }
+    ctx.closePath();
+    ctx.strokeStyle=`rgba(255,${70+k*15},${70+k*15},${0.7-k*0.11})`;ctx.lineWidth=1.2;ctx.stroke();
+  }
+  const cr=R*(0.19+0.03*breath+0.1*lvl);
+  g=ctx.createRadialGradient(cx,cy,0,cx,cy,cr*2.3);
+  g.addColorStop(0,"rgba(255,240,235,1)");g.addColorStop(0.08,"rgba(255,150,135,1)");
+  g.addColorStop(0.35,"rgba(255,50,40,0.7)");g.addColorStop(1,"rgba(255,0,0,0)");
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(cx,cy,cr*2.3,0,Math.PI*2);ctx.fill();
+  const rot=t*(mode==="thinking"?2.4:0.35);
+  ctx.lineWidth=2.2;ctx.strokeStyle="rgba(255,175,95,0.9)";ctx.beginPath();ctx.arc(cx,cy,R*0.93,rot,rot+1.2);ctx.stroke();
+  ctx.lineWidth=1.2;ctx.strokeStyle="rgba(255,70,60,0.4)";ctx.beginPath();ctx.arc(cx,cy,R*0.97,rot+3,rot+4.3);ctx.stroke();
+  ctx.setLineDash([1,9]);ctx.strokeStyle="rgba(255,255,255,0.22)";ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(cx,cy,R*1.0,-rot*0.5,-rot*0.5+Math.PI*2);ctx.stroke();ctx.setLineDash([]);
+  requestAnimationFrame(frame);
+}
+
+/* ---------- Paneller ---------- */
+const open=id=>$(id).classList.add("open");
+document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>b.closest(".sheet").classList.remove("open"));
+document.querySelectorAll(".sheet").forEach(s=>s.addEventListener("click",e=>{if(e.target===s)s.classList.remove("open")}));
+
+$("#star").onclick=()=>{
+  const l=$("#histList");l.innerHTML="";
+  if(!hist.length)l.appendChild(mk("p","note","Henüz sohbet yok."));
+  hist.slice().reverse().forEach(m=>{
+    const d=mk("div","hm "+m.role);const b=mk("b","",m.role==="user"?"SEN":"ULTRON");
+    b.appendChild(mk("time","",new Date(m.t).toLocaleString("tr-TR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})));
+    d.appendChild(b);d.appendChild(document.createTextNode(m.text));l.appendChild(d);
+  });
+  open("#shHist");
+};
+$("#clearHist").onclick=()=>{if(confirm("Tüm sohbet geçmişi silinsin mi?")){hist=[];save("ultron.hist",hist);render();$("#shHist").classList.remove("open")}};
+
+function caps(){
+  const trv=TTS?TTS.getVoices().filter(v=>/^tr/i.test(v.lang)).length:0;
+  const rows=[
+    ["Güvenli bağlantı (HTTPS)",isSecureContext,isSecureContext?"evet":"hayır — mikrofon çalışmaz"],
+    ["Konuşma tanıma (Türkçe)",!!SR,SR?"destekleniyor":"bu tarayıcıda yok"],
+    ["Sesli cevap",!!TTS&&trv>0,TTS?(trv?trv+" Türkçe ses bulundu":"Türkçe ses yüklü değil"):"desteklenmiyor"],
+    ["Yapay zekâ uç noktası",!!cfg.endpoint,cfg.endpoint?"adres kayıtlı":"kurulmadı — Ayarlar"],
+    ["Kamera / galeri",true,cfg.endpoint?"hazır":"seçilir; analiz için uç nokta gerekir"],
+    ["Ana ekran uygulaması",matchMedia("(display-mode: standalone)").matches,matchMedia("(display-mode: standalone)").matches?"uygulama olarak açık":"tarayıcıda açık"]
+  ];
+  $("#caps").innerHTML="";
+  rows.forEach(([n,ok,s])=>{const d=mk("div","cap");d.appendChild(mk("span","",n));d.appendChild(mk("i",ok?"ok":"no",s));$("#caps").appendChild(d)});
+}
+$("#info").onclick=()=>{caps();open("#shInfo")};
+$("#brand").onclick=$("#info").onclick;
+
+function fillVoices(){
+  const sel=$("#sVoice");sel.innerHTML="";
+  const vs=TTS?TTS.getVoices().filter(v=>/^tr/i.test(v.lang)):[];
+  if(!vs.length){sel.appendChild(new Option("Türkçe ses bulunamadı",""));return}
+  vs.forEach(v=>sel.appendChild(new Option(v.name+" ("+v.lang+")",v.name)));
+  sel.value=(pickVoice()||{}).name||"";
+}
+if(TTS){TTS.onvoiceschanged=fillVoices}
+$("#gear").onclick=()=>{
+  fillVoices();
+  $("#sEnd").value=cfg.endpoint;$("#sTok").value=cfg.token;
+  $("#sPitch").value=cfg.pitch;$("#sRate").value=cfg.rate;
+  $("#vP").textContent=cfg.pitch;$("#vR").textContent=cfg.rate;
+  $("#sSpeak").checked=cfg.autoSpeak;$("#sCont").checked=cfg.continuous;$("#sAna").checked=cfg.analyse;
+  open("#shSet");
+};
+function saveCfg(){
+  cfg.endpoint=$("#sEnd").value.trim().replace(/\/+$/,"");cfg.token=$("#sTok").value;
+  cfg.voice=$("#sVoice").value;cfg.pitch=+$("#sPitch").value;cfg.rate=+$("#sRate").value;
+  cfg.autoSpeak=$("#sSpeak").checked;cfg.continuous=$("#sCont").checked;cfg.analyse=$("#sAna").checked;
+  $("#vP").textContent=cfg.pitch;$("#vR").textContent=cfg.rate;
+  save("ultron.cfg",cfg);refreshDot();
+}
+["#sEnd","#sTok","#sVoice","#sPitch","#sRate","#sSpeak","#sCont","#sAna"].forEach(s=>{$(s).addEventListener("input",saveCfg);$(s).addEventListener("change",saveCfg)});
+$("#testVoice").onclick=()=>{const keep=cfg.autoSpeak;cfg.autoSpeak=true;speak("Buradayım patron. Sistemler tam gaz çalışıyor.");cfg.autoSpeak=keep};
+
+/* ---------- Olaylar ---------- */
+$("#mic").onclick=toggleMic;
+$("#orb").onclick=()=>{if(speaking)stopSpeak()};
+$("#send").onclick=()=>send($("#txt").value);
+$("#txt").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();send($("#txt").value)}});
+$("#txt").addEventListener("input",updSend);
+$("#cam").onclick=()=>$("#fCam").click();
+$("#gal").onclick=()=>$("#fGal").click();
+$("#fCam").onchange=e=>pickImage(e.target.files[0]);
+$("#fGal").onchange=e=>pickImage(e.target.files[0]);
+$("#prevX").onclick=clearAttach;
+document.addEventListener("visibilitychange",()=>{if(document.hidden&&micOn){micOn=false;releaseMic();setMode("idle")}});
+
+/* ---------- Ana ekran (PWA) ---------- */
+(function pwa(){
+  try{
+    const mkIcon=s=>{const c=document.createElement("canvas");c.width=c.height=s;const x=c.getContext("2d");
+      x.fillStyle="#000";x.fillRect(0,0,s,s);
+      const g=x.createRadialGradient(s/2,s/2,0,s/2,s/2,s*0.4);
+      g.addColorStop(0,"#fff");g.addColorStop(0.12,"#ff8a7a");g.addColorStop(0.4,"#ff2d2d");g.addColorStop(1,"rgba(255,0,0,0)");
+      x.fillStyle=g;x.fillRect(0,0,s,s);x.strokeStyle="#ff5a4a";x.lineWidth=s*0.012;
+      [0.22,0.3,0.38].forEach(r=>{x.beginPath();x.arc(s/2,s/2,s*r,0,7);x.stroke()});
+      return c.toDataURL("image/png")};
+    const i192=mkIcon(192),i512=mkIcon(512);
+    const l=document.createElement("link");l.rel="apple-touch-icon";l.href=i192;document.head.appendChild(l);
+    const fav=document.createElement("link");fav.rel="icon";fav.href=i192;document.head.appendChild(fav);
+    if(location.protocol.startsWith("http")){
+      const man={name:"ULTRON",short_name:"ULTRON",start_url:location.href.split("#")[0],scope:location.href.split("#")[0].replace(/[^/]*$/,""),display:"standalone",orientation:"portrait",background_color:"#000000",theme_color:"#000000",
+        icons:[{src:i192,sizes:"192x192",type:"image/png",purpose:"any"},{src:i512,sizes:"512x512",type:"image/png",purpose:"any"}]};
+      const m=document.createElement("link");m.rel="manifest";
+      m.href=URL.createObjectURL(new Blob([JSON.stringify(man)],{type:"application/manifest+json"}));
+      document.head.appendChild(m);
+    }
+  }catch{}
+})();
+
+/* ---------- Başlangıç ---------- */
+fit();render();requestAnimationFrame(frame);
+if(!hist.length){
+  hist.push({role:"assistant",text:"Ultron çevrimiçi. Mikrofona dokun ve konuş ya da yaz.",t:Date.now()});render();
+}
+</script>
+</body>
+</html>
