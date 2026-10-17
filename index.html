@@ -118,11 +118,9 @@ input[type=range]{width:100%;accent-color:#ff3a3a}
   <!-- Ayarlar -->
   <div class="sheet" id="shSet"><div class="panel">
     <h2>AYARLAR <button data-close>✕</button></h2>
-    <label>Yapay zekâ uç noktası (kendi Worker adresin)</label>
-    <input type="url" id="sEnd" placeholder="https://ultron.kullanici.workers.dev">
-    <label>Erişim şifresi (Worker'daki ULTRON_TOKEN)</label>
+    <label>Erişim şifresi</label>
     <input type="password" id="sTok" placeholder="isteğe bağlı ama önerilir" autocomplete="off">
-    <p class="note">API anahtarını buraya YAZMA. Anahtar yalnızca Worker'da gizli tutulur.</p>
+    <p class="note">API anahtarı bu uygulamada tutulmaz; yalnızca sunucuda gizli kalır.</p>
     <label>Ses</label>
     <select id="sVoice"></select>
     <label>Perde: <span id="vP"></span></label>
@@ -145,6 +143,8 @@ const save=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}};
 
 let cfg=Object.assign({endpoint:"",token:"",voice:"",pitch:0.7,rate:0.95,autoSpeak:true,continuous:true,analyse:true},load("ultron.cfg",{}));
 let hist=load("ultron.hist",[]);
+// Yapay zekâ ucu: uygulamanın kendi adresi (aynı Worker hem sayfayı hem AI'ı sunar)
+cfg.endpoint=location.protocol.startsWith("http")?location.origin:"";
 let attached=null, busy=false, micOn=false, speaking=false, mode="idle", thinkingUI=false;
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 const TTS=window.speechSynthesis;
@@ -313,7 +313,7 @@ async function send(text){
     const lc=!img?await localCmd(text):null;
     if(lc){reply=lc.text;extra=lc.link?{link:lc.link}:null}
     else if(!cfg.endpoint){
-      reply="Yapay zekâ bağlantısı henüz kurulmadı. Ayarlar'dan Worker adresini gir. Şimdilik saat, tarih, pil ve Spotify/YouTube komutlarını yerel olarak yapabilirim.";
+      reply="Yapay zekâ yalnızca yayımlanmış internet adresinde çalışır. Dosya olarak açıldığında saat, tarih, pil ve Spotify/YouTube komutlarını yerel olarak yapabilirim.";
     }else{
       const msgs=hist.slice(-13).map(m=>({role:m.role,content:m.text.replace(/ 📷$/,"")}));
       const res=await fetch(cfg.endpoint,{method:"POST",headers:{"Content-Type":"application/json","X-Ultron-Token":cfg.token||""},
@@ -424,7 +424,7 @@ function caps(){
     ["Güvenli bağlantı (HTTPS)",isSecureContext,isSecureContext?"evet":"hayır — mikrofon çalışmaz"],
     ["Konuşma tanıma (Türkçe)",!!SR,SR?"destekleniyor":"bu tarayıcıda yok"],
     ["Sesli cevap",!!TTS&&trv>0,TTS?(trv?trv+" Türkçe ses bulundu":"Türkçe ses yüklü değil"):"desteklenmiyor"],
-    ["Yapay zekâ uç noktası",!!cfg.endpoint,cfg.endpoint?"adres kayıtlı":"kurulmadı — Ayarlar"],
+    ["Yapay zekâ uç noktası",!!cfg.endpoint,cfg.endpoint?"sunucu aynı adreste":"yalnızca yayımlanmış adreste çalışır"],
     ["Kamera / galeri",true,cfg.endpoint?"hazır":"seçilir; analiz için uç nokta gerekir"],
     ["Ana ekran uygulaması",matchMedia("(display-mode: standalone)").matches,matchMedia("(display-mode: standalone)").matches?"uygulama olarak açık":"tarayıcıda açık"]
   ];
@@ -444,20 +444,20 @@ function fillVoices(){
 if(TTS){TTS.onvoiceschanged=fillVoices}
 $("#gear").onclick=()=>{
   fillVoices();
-  $("#sEnd").value=cfg.endpoint;$("#sTok").value=cfg.token;
+  $("#sTok").value=cfg.token;
   $("#sPitch").value=cfg.pitch;$("#sRate").value=cfg.rate;
   $("#vP").textContent=cfg.pitch;$("#vR").textContent=cfg.rate;
   $("#sSpeak").checked=cfg.autoSpeak;$("#sCont").checked=cfg.continuous;$("#sAna").checked=cfg.analyse;
   open("#shSet");
 };
 function saveCfg(){
-  cfg.endpoint=$("#sEnd").value.trim().replace(/\/+$/,"");cfg.token=$("#sTok").value;
+  cfg.token=$("#sTok").value;
   cfg.voice=$("#sVoice").value;cfg.pitch=+$("#sPitch").value;cfg.rate=+$("#sRate").value;
   cfg.autoSpeak=$("#sSpeak").checked;cfg.continuous=$("#sCont").checked;cfg.analyse=$("#sAna").checked;
   $("#vP").textContent=cfg.pitch;$("#vR").textContent=cfg.rate;
   save("ultron.cfg",cfg);refreshDot();
 }
-["#sEnd","#sTok","#sVoice","#sPitch","#sRate","#sSpeak","#sCont","#sAna"].forEach(s=>{$(s).addEventListener("input",saveCfg);$(s).addEventListener("change",saveCfg)});
+["#sTok","#sVoice","#sPitch","#sRate","#sSpeak","#sCont","#sAna"].forEach(s=>{$(s).addEventListener("input",saveCfg);$(s).addEventListener("change",saveCfg)});
 $("#testVoice").onclick=()=>{const keep=cfg.autoSpeak;cfg.autoSpeak=true;speak("Buradayım patron. Sistemler tam gaz çalışıyor.");cfg.autoSpeak=keep};
 
 /* ---------- Olaylar ---------- */
